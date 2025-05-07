@@ -2,6 +2,7 @@
 	import { PUBLIC_VAPI_ASSISTANT_ID, PUBLIC_VAPI_KEY } from '$env/static/public';
 	import { onMount } from 'svelte';
 	import Vapi from '@vapi-ai/web';
+	import type { VapiInterviewNotificationArgs } from './api/slack-message/+server';
 
 	let vapi: Vapi;
 	type CallStatus = 'pending' | 'preparing' | 'ongoing' | 'terminated';
@@ -14,8 +15,19 @@
 			callStatus = 'ongoing';
 		});
 
-		vapi.on('call-end', () => {
+		vapi.on('call-end', async () => {
 			callStatus = 'terminated';
+			const data: VapiInterviewNotificationArgs = {
+				interviewerName: 'Max',
+				intervieweeName: 'Interviewee',
+				evaluation: '',
+				transcriptLink: ''
+			};
+			await fetch('/api/slack-message', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			});
 		});
 	});
 
